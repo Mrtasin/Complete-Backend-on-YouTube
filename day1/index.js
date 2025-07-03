@@ -17,9 +17,28 @@ app.use(
   })
 );
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.get("/", (req, res) => {
   res.send("App create successfully");
 });
+
+const registerUser = (req, res) => {
+  const { name, email, password } = req.body;
+  console.log(`Name : - ${name}`);
+  console.log(`Email : - ${email}`);
+  console.log(`Password : - ${password}`);
+
+  const id = req.params?.id;
+  console.log(`User id :- ${id}`);
+
+  res.status(201).json({
+    message: "Register Successfully",
+  });
+};
+
+app.post("/register/:id", registerUser);
 
 app.get("/home", (req, res) => {
   res.send("This is a home page");
