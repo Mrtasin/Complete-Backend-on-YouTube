@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/user.models.js";
 import crypto from "crypto";
 import sendingEmail from "../utils/sendingEmail.js";
+import jwt from "jsonwebtoken";
 
 const registerUser = async (req, res) => {
   const { email, name, password } = req.body;
@@ -103,7 +104,6 @@ const isVerify = async (req, res) => {
       success: true,
       user: user,
     });
-    
   } catch (error) {
     console.log("Internel server error :- ", error);
     return res.status(500).json({
@@ -115,7 +115,65 @@ const isVerify = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { email, name, passsword } = req.body;
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(401).json({
+      message: "All fields are required",
+      success: false,
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "email and password invalid",
+        success: false,
+      });
+    }
+
+    const jwtToken = jwt.sign(
+      { email: email, _id: user._id },
+      process.env.JWT_SECRET
+    );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    };
+
+    res.cookie("token", jwtToken, cookieOptions);
+
+    return res.status(200).json({
+      message: "User login successfully",
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+        role: user.role,
+        _id: user._id,
+      },
+    });
+  } catch (error) {
+    console.log("Internel server error :- ", error);
+    return res.status(500).json({
+      message: "Internel server error",
+      success: false,
+      error: error.message,
+    });
+  }
 };
 
 const logoutUser = async (req, res) => {
