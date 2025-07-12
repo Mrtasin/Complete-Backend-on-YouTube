@@ -322,6 +322,110 @@ const logoutUser = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        message: "All fields are required",
+        success: false,
+      });
+    }
+
+    const user = await User.findOne({
+      email: req.user.email,
+      _id: req.user._id,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Error for database",
+        success: false,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Old password invalid",
+        success: false,
+      });
+    }
+
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashPassword;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password change successfully",
+      success: true,
+      user: {
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+        role: user.role,
+        _id: user._id,
+      },
+    });
+  } catch (error) {
+    console.log("Internel server error :- ", error);
+    return res.status(500).json({
+      message: "Internel server error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+const resendVerificationEmail = async (req, res) => {
+  try {
+    const token = crypto.randomBytes(30).toString("hex");
+
+    console.log("Token :- ", token);
+
+    // Sending Email
+
+    const user = await User.findOneAndUpdate(
+      { email: req.user.email, isVerified:false },
+      {
+        emailVerificationToken: token,
+        emailVerificationExpiry: Date.now() + 10 * 60 * 1000,
+      }
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Error for database",
+        success: false,
+      });
+    }
+
+    const options = {
+      email: user.email,
+      subject: "Email verification",
+      route: "verify",
+      token: token,
+    };
+
+    await sendingEmail(options);
+
+    return res.status(201).json({
+      message: "Resend Verification Email successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log("Internel server error :- ", error);
+    return res.status(500).json({
+      message: "Internel server error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -330,4 +434,6 @@ export {
   getProfile,
   forgotPassword,
   resetPassword,
+  changePassword,
+  resendVerificationEmail,
 };
