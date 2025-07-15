@@ -68,7 +68,7 @@ const studentSchema = new Schema(
 
     currentsemester: {
       type: Number,
-      required: true,
+      default: 1,
     },
 
     markssheet: {

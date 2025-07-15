@@ -45,6 +45,8 @@ const userSchema = new Schema(
       default: UserRoleEnum.USER,
     },
 
+    dpt: String,
+
     verificationToken: String,
     verificationExpiry: Date,
     resetVerificationToken: String,
