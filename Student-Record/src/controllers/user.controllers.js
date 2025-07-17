@@ -22,8 +22,7 @@ const registerUser = async (req, res) => {
 
     if (allreadyRegisterUser) throw new ApiError(401, "Allready Register User");
 
-    const avatarPath = req.file?.avatar;
-    console.log(avatarPath);
+    const avatarPath = req.file?.path;
 
     const avatar = await fileUplodeOnCloudinary(avatarPath);
 

@@ -1,5 +1,10 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config({
+  path: "./.env",
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,8 +19,6 @@ const fileUplodeOnCloudinary = async (filePath) => {
     const response = await cloudinary.uploader.upload(filePath, {
       resource_type: "auto",
     });
-
-    console.log(`response :- ${response}`);
 
     return response;
   } catch (error) {

@@ -42,7 +42,7 @@ const sendingEmail = async (options) => {
   });
 
   const info = await transporter.sendMail({
-    from: MAILTRAP_FROM,
+    from: process.env.MAILTRAP_FROM,
     to: options.email,
     subject: options.subject,
     text: emailText,
