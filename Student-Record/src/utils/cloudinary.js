@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,6 +21,8 @@ const fileUplodeOnCloudinary = async (filePath) => {
   } catch (error) {
     console.error(`File uploding error :- ${error}`);
     return null;
+  } finally {
+    if (filePath) fs.unlinkSync(filePath);
   }
 };
 

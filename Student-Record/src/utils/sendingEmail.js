@@ -52,4 +52,13 @@ const sendingEmail = async (options) => {
   console.log("Message sent:-", info.messageId);
 };
 
+// const options = {
+//   name: name,
+//   instructions: instructions,
+//   email: email,
+//   route: route,
+//   token: token,
+//   subject: subject,
+// };
+
 export default sendingEmail;
