@@ -1,13 +1,11 @@
 export const UserRoleEnum = {
-  ADMIN: "admin",
-  USER: "user",
+  ADMIN: "ADMIN",
+  USER: "USER",
 };
-
 export const UserRoleEnumArray = Object.values(UserRoleEnum);
 
 export const StudentGenderEnum = {
-  MALE: "male",
-  FEMALE: "female",
+  MALE: "MALE",
+  FEMALE: "FEMALE",
 };
-
 export const StudentGenderEnumArray = Object.values(StudentGenderEnum);
