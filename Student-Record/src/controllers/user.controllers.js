@@ -43,7 +43,7 @@ const registerUser = async (req, res) => {
       name: fullname,
       instructions: "Prss button for verification user",
       email: email,
-      route: "/verify",
+      route: "verify",
       token: token,
       subject: "Email Verification",
     };
@@ -70,6 +70,30 @@ const registerUser = async (req, res) => {
 };
 const loginUser = async (req, res) => {
   try {
+    const { username, email, password } = req.body;
+    if (!(username || email) || !password)
+      throw new ApiError(400, "All fieleds are required");
+
+    const user = await User.findOne({ $or: [{ email }, { username }] });
+    if (!user) throw new ApiError(404, "Not found user");
+
+    const isMatch = await user.isPasswordCorrect(password);
+    if (!isMatch) throw new ApiError(401, "Password is invalid");
+
+    const accessToken = user.generateAccessToken();
+
+    const refreshToken = user.generateRefreshToken();
+
+    await user.save();
+
+    user.refreshToken = undefined;
+    user.password = undefined;
+
+    return res
+      .cookie("accessToken", accessToken, { httpOnly: true })
+      .cookie("refreshToken", refreshToken, { httpOnly: true })
+      .status(200)
+      .json(new ApiResponse(200, "User login successfully", user));
   } catch (error) {
     console.error("Internel server Error :-", error.message);
 
@@ -86,6 +110,26 @@ const logoutUser = async (req, res) => {
 };
 const isVerify = async (req, res) => {
   try {
+    const { token } = req.params;
+    if (!token) throw new ApiError(400, "Token is required");
+
+    const user = await User.findOne({
+      $and: [
+        { verificationToken: token },
+        { verificationExpiry: { $gte: Date.now() } },
+      ],
+    }).select("-password -refreshToken");
+    if (!user) throw new ApiError(401, "Token is invalid");
+
+    user.isVerified = true;
+    user.verificationExpiry = undefined;
+    user.verificationToken = undefined;
+
+    await user.save();
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Email verification successfully", user));
   } catch (error) {
     console.error("Internel server Error :-", error.message);
 
