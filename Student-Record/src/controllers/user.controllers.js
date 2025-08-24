@@ -102,6 +102,12 @@ const loginUser = async (req, res) => {
 };
 const logoutUser = async (req, res) => {
   try {
+    req.cookies.accessToken = "";
+    req.cookies.refreshToken = "";
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "User Logout Successfully", req.user));
   } catch (error) {
     console.error("Internel server Error :-", error.message);
 
@@ -137,4 +143,18 @@ const isVerify = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, logoutUser, isVerify };
+const getProfile = async (req, res) => {
+  try {
+    if (!req.user) throw new ApiError(401, "User not loggedin");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Get Profile Successfully", req.user));
+  } catch (error) {
+    console.error("Internel server Error :-", error.message);
+
+    throw new ApiError(500, "Internel server Error", error);
+  }
+};
+
+export { registerUser, loginUser, logoutUser, isVerify, getProfile };
