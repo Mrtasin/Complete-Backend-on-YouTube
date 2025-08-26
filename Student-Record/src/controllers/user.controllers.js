@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import fileUplodeOnCloudinary from "../utils/cloudinary.js";
 import sendingEmail from "../utils/sendingEmail.js";
+import crypto from "crypto";
 
 const registerUser = async (req, res) => {
   try {
@@ -150,6 +151,42 @@ const getProfile = async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, "Get Profile Successfully", req.user));
+  } catch (error) {
+    console.error("Internel server Error :-", error.message);
+
+    throw new ApiError(500, "Internel server Error", error);
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) throw new ApiError(400, "Email is required");
+
+    const user = await User.findOne({ email });
+    if (!user) throw new ApiError(404, "User not found").select("-password");
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    user.resetVerificationToken = token;
+    user.resetVerificationExpiry = Date.now() + 20 * 60 * 1000;
+
+    await user.save();
+
+    const options = {
+      name: user.fullname,
+      instructions: "Reset Password",
+      email: email,
+      route: "reset-password",
+      token: token,
+      subject: "Reset Password",
+    };
+
+    await sendingEmail(options);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Forgot Paswword successfully", user));
   } catch (error) {
     console.error("Internel server Error :-", error.message);
 
