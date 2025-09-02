@@ -1,3 +1,4 @@
+import { unsubscribe } from "diagnostics_channel";
 import User from "../models/user.models.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
@@ -194,4 +195,47 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, logoutUser, isVerify, getProfile };
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    if (!token || !password)
+      throw new ApiError(400, "Token and password are required");
+
+    const user = await User.findOne({
+      $and: [
+        { resetVerificationToken: token },
+        { resetVerificationExpiry: { $gte: Date.now() } },
+      ],
+    });
+    if (!user) throw new ApiError(401, "Token and time are invalid");
+
+    if (await user.isPasswordCorrect(password))
+      throw new ApiError(401, "Same Password");
+
+    user.password = password;
+    user.resetVerificationExpiry = undefined;
+    user.resetVerificationToken = undefined;
+    await user.save();
+
+    user.password = undefined;
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Reset Password successfully", user));
+  } catch (error) {
+    console.error("Internel server Error :-", error.message);
+
+    throw new ApiError(500, "Internel server Error", error);
+  }
+};
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  isVerify,
+  getProfile,
+  forgotPassword,
+  resetPassword,
+};
