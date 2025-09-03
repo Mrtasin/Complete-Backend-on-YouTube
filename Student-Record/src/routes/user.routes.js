@@ -8,6 +8,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  resendVerificationEmail,
   resetPassword,
 } from "../controllers/user.controllers.js";
 import isLoggedIn from "../middleware/user.middleware.js";
@@ -22,5 +23,6 @@ userRoutes.get("/me", isLoggedIn, getProfile);
 userRoutes.post("/forgot-password", forgotPassword);
 userRoutes.post("/reset-password/:token", resetPassword);
 userRoutes.put("/change-password", isLoggedIn, changePassword);
+userRoutes.get("/resend-email", isLoggedIn, resendVerificationEmail);
 
 export default userRoutes;

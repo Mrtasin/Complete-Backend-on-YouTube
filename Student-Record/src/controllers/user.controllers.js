@@ -257,6 +257,36 @@ const changePassword = async (req, res) => {
   }
 };
 
+const resendVerificationEmail = async (req, res) => {
+  try {
+    const user = req.user;
+    const token = user.generateVerificationToken();
+
+    await user.save();
+
+    const options = {
+      name: user.fullname,
+      instructions: "Prss button for verification user",
+      email: user.email,
+      route: "verify",
+      token: token,
+      subject: "Email Verification",
+    };
+
+    await sendingEmail(options);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, "Resend Verification Email Successfully", user)
+      );
+  } catch (error) {
+    console.error("Internel server Error :-", error.message);
+
+    throw new ApiError(500, "Internel server Error", error);
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -266,4 +296,5 @@ export {
   forgotPassword,
   resetPassword,
   changePassword,
+  resendVerificationEmail,
 };
