@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { upload } from "../middleware/multer.middleware.js";
 import {
+  changePassword,
   forgotPassword,
   getProfile,
   isVerify,
@@ -20,5 +21,6 @@ userRoutes.get("/logout", isLoggedIn, logoutUser);
 userRoutes.get("/me", isLoggedIn, getProfile);
 userRoutes.post("/forgot-password", forgotPassword);
 userRoutes.post("/reset-password/:token", resetPassword);
+userRoutes.put("/change-password", isLoggedIn, changePassword);
 
 export default userRoutes;

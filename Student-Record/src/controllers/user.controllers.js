@@ -230,6 +230,33 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword)
+      throw new ApiError(400, "All fields are required");
+
+    if (oldPassword === newPassword)
+      throw new ApiError(401, "Old and new password are same");
+
+    const user = await User.findById(req.user._id);
+
+    if (!(await user.isPasswordCorrect(oldPassword)))
+      throw new ApiError(401, "Old Password is invalid");
+
+    user.password = newPassword;
+    await user.save();
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Password Change Successfully", user));
+  } catch (error) {
+    console.error("Internel server Error :-", error.message);
+
+    throw new ApiError(500, "Internel server Error", error);
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -238,4 +265,5 @@ export {
   getProfile,
   forgotPassword,
   resetPassword,
+  changePassword,
 };
