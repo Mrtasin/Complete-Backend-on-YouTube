@@ -1,4 +1,3 @@
-import { unsubscribe } from "diagnostics_channel";
 import User from "../models/user.models.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
@@ -40,6 +39,8 @@ const registerUser = async (req, res) => {
     });
 
     const token = user.generateVerificationToken();
+
+    await user.save();
 
     const options = {
       name: fullname,
